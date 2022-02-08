@@ -22,10 +22,13 @@ app.get('/api/persons', (req, res, next) => {
 })
 
 app.get('/info', (req, res) => {
-    res.send(`
-    <p>Phonebook has info for ${persons.length} people</p>
-    ${new Date()}
-    `)
+    Person.find({})
+        .then(persons => {
+            res.send(`
+            <p>Phonebook has info for ${persons.length} people</p>
+            ${new Date()}
+            `)
+        })
 })
 
 app.get('/api/persons/:id', (req, res, next) => {
