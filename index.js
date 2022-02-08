@@ -56,25 +56,22 @@ app.get('/api/persons/:id', (req, res, next) => {
 
 app.delete('/api/persons/:id', (req, res, next) => {
     Person.findByIdAndRemove(req.params.id)
-        .then(result => {
+        .then(() => {
             res.status(204).end()
         })
         .catch(error => next(error))
     // const id = Number(req.params.id)
     // persons = persons.filter(person => person.id !== id)
-  
     // res.status(204).end()
 })
 
-const generateId = () => Math.trunc(Math.random() * 1000000)
 
 app.post('/api/persons/', (req, res, next) => {
     const body = req.body
 
     if(!body.name || !body.number){
-        
         return res.status(400).json({
-        error: 'name or number missing'
+            error: 'name or number missing'
         })
     }
 
@@ -99,7 +96,7 @@ app.put('/api/persons/:id', (req, res, next) => {
         number: body.number,
     }
 
-    Person.findByIdAndUpdate(req.params.id, person, {new: true, runValidators: true})
+    Person.findByIdAndUpdate(req.params.id, person, { new: true, runValidators: true })
         .then(updatePerson => {
             res.json(updatePerson)
         })
@@ -110,11 +107,11 @@ const errorHandller = (error, req, res, next) => {
     console.error(error.message)
 
     if(error.name === 'CastError') {
-        return res.status(400).send({error: 'malformatted id'})
+        return res.status(400).send({ error: 'malformatted id' })
     } else if(error.name === 'ValidationError') {
-        return res.status(400).json({error: error.message})
+        return res.status(400).json({ error: error.message })
     } else if(error.name === 'MongoServerError') {
-        return res.status(400).json({error: error.message})
+        return res.status(400).json({ error: error.message })
     }
 
     next(error)
