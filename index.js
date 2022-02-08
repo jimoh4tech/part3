@@ -35,7 +35,11 @@ app.get('/api/persons/:id', (req, res, next) => {
     Person.findById(req.params.id)
         .then(person => {
             if(person) {
-                res.json(person)
+                res.json({
+                    name: person.name,
+                    number: person.number,
+                    id: person.id
+                })
             } else {
                 res.status(404).end()
             }
@@ -64,7 +68,7 @@ app.delete('/api/persons/:id', (req, res, next) => {
 
 const generateId = () => Math.trunc(Math.random() * 1000000)
 
-app.post('/api/persons/', (req, res) => {
+app.post('/api/persons/', (req, res, next) => {
     const body = req.body
 
     if(!body.name || !body.number){
@@ -73,12 +77,6 @@ app.post('/api/persons/', (req, res) => {
         error: 'name or number missing'
         })
     }
-    
-    // if((persons.map(p => p.name)).includes(body.name)){
-    //     return res.status(400).json({
-    //         error:'name must be unique'
-    //     })
-    // }
 
     const person = new Person({
         name: body.name,
@@ -86,9 +84,11 @@ app.post('/api/persons/', (req, res) => {
         date: new Date(),
     })
 
-    person.save().then(savedPerson => {
-        res.json(savedPerson)
-    })
+    person.save()
+        .then(savedPerson => {
+            res.json(savedPerson)
+        })
+        .catch(error => next(error))
 })
 
 app.put('/api/persons/:id', (req, res, next) => {
@@ -99,7 +99,7 @@ app.put('/api/persons/:id', (req, res, next) => {
         number: body.number,
     }
 
-    Person.findByIdAndUpdate(req.params.id, person, {new: true})
+    Person.findByIdAndUpdate(req.params.id, person, {new: true, runValidators: true})
         .then(updatePerson => {
             res.json(updatePerson)
         })
@@ -111,6 +111,10 @@ const errorHandller = (error, req, res, next) => {
 
     if(error.name === 'CastError') {
         return res.status(400).send({error: 'malformatted id'})
+    } else if(error.name === 'ValidationError') {
+        return res.status(400).json({error: error.message})
+    } else if(error.name === 'MongoServerError') {
+        return res.status(400).json({error: error.message})
     }
 
     next(error)
